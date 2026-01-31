@@ -1,0 +1,18 @@
+## Interface: 120000
+## Title: OctoChargeBar
+## SavedVariables: OctoChargeBarDB
+
+# Libraries
+lib\LibStub\LibStub.lua
+lib\LibEditMode\embed.xml
+lib\AceAddon-3.0\AceAddon-3.0.xml
+lib\AceEvent-3.0\AceEvent-3.0.xml
+lib\AceDB-3.0\AceDB-3.0.xml
+
+# Main Files
+Types.lua
+Util.lua
+Data.lua
+ChargeBar.lua
+SlashCmd.Lua
+Core.lua

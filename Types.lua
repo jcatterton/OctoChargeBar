@@ -1,0 +1,27 @@
+---@class ChargeBarSettings
+---@field spellId number
+---@field barWidth number
+---@field barHeight number
+---@field borderWidth number
+---@field borderColor {r: number, g: number, b: number, a: number}
+---@field chargeColor {r: number, g: number, b: number, a: number}
+---@field showRechargeText boolean
+---@field rechargeTextFont string
+---@field rechargeTextFontSize number
+---@field rechargeColor {r: number, g: number, b: number, a: number}
+---@field showTicks boolean
+---@field tickWidth number
+---@field tickColor {r: number, g: number, b: number, a: number}
+---@field position {point: string, x: number, y: number}
+
+---@class ChargeBar
+---@field spellId number
+---@field showRechargeText boolean
+---@field showTicks boolean
+---@field tickWidth number
+---@field tickColor {r: number, g: number, b: number, a: number}
+---@field frame Frame
+---@field innerContainer Frame
+---@field chargeFrame StatusBar
+---@field refreshCharge StatusBar
+---@field ticksContainer Frame
