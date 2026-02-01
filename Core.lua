@@ -4,6 +4,7 @@ local addon = select(2, ...)
 local Data = addon.Data
 local ChargeBar = addon.ChargeBar
 local SlashCmd = addon.SlashCmd
+local Util = addon.Util
 
 local Core = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0")
 addon.Core = Core
@@ -13,7 +14,6 @@ function Core:OnInitialize()
     Core.chargeBars = {}
 
     EventRegistry:RegisterCallback(addonName..".AddBar", Core.AddNewBar)
-    EventRegistry:RegisterCallback(addonName..".RemoveBar", Core.RemoveBar)
 end
 
 function Core:OnEnable()
@@ -64,8 +64,11 @@ end
 
 function Core:AddNewBar(spellId)
     print('AddNewBar', spellId)
-end
-
-function Core:RemoveBar(spellId)
-    print('RemoveBar', spellId)
+    local barSettings = Util:TableCopy(Data.defaultBarSettings)
+    barSettings.spellId = spellId
+    table.insert(Data.db.profile.bars, barSettings)
+    table.insert(Core.chargeBars, ChargeBar:Init(barSettings))
+    for i, chargeBar in pairs(Core.chargeBars) do
+        chargeBar:Setup()
+    end
 end

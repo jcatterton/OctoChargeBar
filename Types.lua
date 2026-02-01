@@ -25,3 +25,4 @@
 ---@field chargeFrame StatusBar
 ---@field refreshCharge StatusBar
 ---@field ticksContainer Frame
+---@field settingsChanged boolean
