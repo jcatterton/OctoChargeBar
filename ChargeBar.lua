@@ -86,7 +86,7 @@ function ChargeBar:Setup()
 
     local maxCharges = chargeInfo.maxCharges
     local currentCharges = chargeInfo.currentCharges
-    local chargeWidth = ceil(self.innerContainer:GetWidth() / maxCharges)
+    local chargeWidth = self.innerContainer:GetWidth() / maxCharges
     self.chargeFrame:SetMinMaxValues(0, maxCharges)
     self.chargeFrame:SetValue(currentCharges)
 
