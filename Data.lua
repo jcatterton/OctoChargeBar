@@ -79,7 +79,10 @@ Data.defaultTrackedSpellsBySpec = {
     },
 
     -- Hunter: Beast Mastery
-    [253] = {},
+    [253] = {
+        34026, -- Kill Command
+        217200, -- Barbed Shot
+    },
 
     -- Hunter: Marksmanship
     [254] = {},
@@ -88,24 +91,38 @@ Data.defaultTrackedSpellsBySpec = {
     [255] = {},
 
     -- Mage: Arcane
-    [62] = {},
+    [62] = {
+        212653, -- Shimmer
+    },
 
     -- Mage: Fire
     [63] = {
         108853, -- Fire Blast
+        212653, -- Shimmer
     },
 
     -- Mage: Frost
-    [64] = {},
+    [64] = {
+        212653, -- Shimmer
+    },
 
     -- Monk: Brewmaster
-    [268] = {},
+    [268] = {
+        119582, -- Purifying Brew
+        322507, -- Celestial Brew
+        121253, -- Keg Smash
+        109132, -- Roll
+    },
 
     -- Monk: Mistweaver
-    [270] = {},
+    [270] = {
+        109132, -- Roll
+    },
 
     -- Monk: Windwalker
-    [269] = {},
+    [269] = {
+        109132, -- Roll
+    },
 
     -- Paladin: Holy
     [65] = {},
@@ -155,7 +172,9 @@ Data.defaultTrackedSpellsBySpec = {
     [266] = {},
 
     -- Warlock: Destruction
-    [267] = {},
+    [267] = {
+        17962, -- Conflaguration
+    },
 
     -- Warrior: Arms
     [71] = {},
