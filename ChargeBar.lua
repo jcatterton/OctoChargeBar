@@ -90,6 +90,7 @@ function ChargeBar:ApplySettings(settings)
     PixelUtil.SetPoint(self.ticksContainer, "CENTER", self.innerContainer, "CENTER", 0, 0)
     PixelUtil.SetWidth(self.ticksContainer, self.innerContainer:GetWidth())
     PixelUtil.SetHeight(self.ticksContainer, self.innerContainer:GetHeight())
+    self.ticksContainer:Raise()
     self.ticksContainer.ticks = self.ticksContainer.ticks or {}
 
     if initialSetup then
