@@ -51,7 +51,10 @@ Data.defaultTrackedSpellsBySpec = {
     [1480] = {},
 
     -- Druid: Balance
-    [102] = {},
+    [102] = {
+        1233346, -- Solar Eclipse
+        -- 1233272, -- Lunar Eclipse. Tracking 1 spell tracks both. I think?
+    },
 
     -- Druid: Feral
     [103] = {},
@@ -85,13 +88,18 @@ Data.defaultTrackedSpellsBySpec = {
     },
 
     -- Hunter: Marksmanship
-    [254] = {},
+    [254] = {
+        19434, -- Aimed Shot
+    },
 
     -- Hunter: Survival
-    [255] = {},
+    [255] = {
+        259495, -- Wildfire Bomb
+    },
 
     -- Mage: Arcane
     [62] = {
+        153626, -- Arcane Orb
         212653, -- Shimmer
     },
 
@@ -103,6 +111,7 @@ Data.defaultTrackedSpellsBySpec = {
 
     -- Mage: Frost
     [64] = {
+        44614, -- Flurry
         212653, -- Shimmer
     },
 
