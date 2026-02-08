@@ -72,6 +72,7 @@ Data.defaultTrackedSpellsBySpec = {
 
     -- Evoker: Preservation
     [1468] = {
+        366155, -- Reversion
         358267, -- Hover
     },
 
@@ -125,6 +126,7 @@ Data.defaultTrackedSpellsBySpec = {
 
     -- Monk: Mistweaver
     [270] = {
+        115151, -- Renewing Mists
         109132, -- Roll
     },
 

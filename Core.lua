@@ -59,6 +59,7 @@ end
 function Core:TRAIT_CONFIG_UPDATED(event, configId)
     if InCombatLockdown() then return end
 
+    -- TODO: This can happen before the layout finishes changing if swapping specs. Need to delay this in those cases.
     for i, chargeBar in pairs(Core.chargeBars) do
         local settings = Data:GetActiveLayoutBarSettings(chargeBar.spellId)
         chargeBar:ApplySettings(settings)

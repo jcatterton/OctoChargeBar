@@ -14,6 +14,7 @@ An addon to display charges of an important spell as a bar. Everything works in 
 * Devastation Evoker
   * Hover
 * Preservation Evoker
+  * Reversion
   * Hover
 * Beast Mastery Hunter
   * Kill Command
@@ -37,6 +38,7 @@ An addon to display charges of an important spell as a bar. Everything works in 
   * Keg Smash
   * Roll
 * Mistweaver Monk
+  * Renewing Mists
   * Roll
 * Windwalker Monk
   * Roll
