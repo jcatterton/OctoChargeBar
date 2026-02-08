@@ -15,8 +15,17 @@ function ChargeBar:New()
 end
 
 ---@param settings ChargeBarSettings
-function ChargeBar:Init(settings)
-    if not C_SpellBook.IsSpellKnown(settings.spellId) then print(settings.spellId, 'not known!') return end
+function ChargeBar:NewWithSettings(settings)
+    local bar = ChargeBar:New()
+    bar:ApplySettings(settings)
+
+    return bar
+end
+
+---@param settings ChargeBarSettings
+function ChargeBar:ApplySettings(settings)
+    assert(C_SpellBook.IsSpellKnown(settings.spellId), settings.spellId .. " not known!")
+
     local spellName = C_Spell.GetSpellName(settings.spellId)
     assert(spellName, string.format("No spell name found for %d.", settings.spellId))
 
@@ -27,7 +36,12 @@ function ChargeBar:Init(settings)
     self.tickWidth = settings.tickWidth
     self.enabled = settings.enabled
 
-    self.frame = self.frame or CreateFrame("Frame", frameName, UIParent, "BackdropTemplate")
+    local initialSetup = false
+
+    if not self.frame then
+        self.frame = CreateFrame("Frame", frameName, UIParent, "BackdropTemplate")
+        initialSetup = true
+    end
     self.frame:SetSize(settings.barWidth, settings.barHeight)
     self.frame:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
@@ -39,6 +53,7 @@ function ChargeBar:Init(settings)
     self.frame:SetBackdropBorderColor(Util:UnpackRGBA(settings.borderColor))
     self.frame:SetSize(settings.barWidth, settings.barHeight)
     self.frame:SetPoint(settings.position.point, settings.position.x, settings.position.y)
+    self.frame:SetShown(settings.enabled)
 
     self.innerContainer = self.innerContainer or CreateFrame("Frame", "innerContainer", self.frame)
     self.innerContainer:SetSize(settings.barWidth - (settings.borderWidth * 2), settings.barHeight - (settings.borderWidth * 2))
@@ -75,12 +90,11 @@ function ChargeBar:Init(settings)
     self.ticksContainer:SetSize(self.innerContainer:GetWidth(), self.innerContainer:GetHeight())
     self.ticksContainer.ticks = self.ticksContainer.ticks or {}
 
-    self:LEMSetup()
-    self:SetupCharges()
-
-    if not self.enabled then
-        self:Hide()
+    if initialSetup then
+        self:LEMSetup()
     end
+
+    self:SetupCharges()
 
     return self
 end
@@ -89,6 +103,7 @@ end
 -- Can't be called while Secret restrictions are active!
 function ChargeBar:SetupCharges()
     if not self.enabled then
+        print('ChargeBar:SetupCharges:', self.spellId, 'not enabled.')
         return
     end
 
@@ -322,7 +337,7 @@ function ChargeBar:LEMSetup()
                 return not self.enabled
             end,
             get = function(layoutName)
-                Data:GetBarSetting(layoutName, self.spellId, 'tickWidth')
+                return Data:GetBarSetting(layoutName, self.spellId, 'tickWidth')
             end,
             set = function(layoutName, value)
                 Data:SetBarSetting(layoutName, self.spellId, 'tickWidth', value)
@@ -369,7 +384,7 @@ function ChargeBar:HandleSpellUpdateCharges()
 end
 
 function ChargeBar:onPositionChanged(layoutName, point, x, y)
-    print('onPositionChanged', self.spellId)
+    -- print(string.format("onPositionChanged('%s', %d): %s (%d, %y)", layoutName, self.spellId, point, x, y))
     Data:SetBarSetting(layoutName, self.spellId, 'position', {
         point = point,
         x = floor(x),

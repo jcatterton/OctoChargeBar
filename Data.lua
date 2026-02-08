@@ -175,7 +175,7 @@ end
 function Data:GetActiveLayoutBarSettings(spellId)
     local layoutName = LEM:GetActiveLayoutName()
     local specId = Util:GetActiveSpecId()
-    assert(self.db.global[layoutName][specId].specBars[spellId])
+    assert(self.db.global[layoutName][specId].specBars[spellId], string.format("SpellId %d not found in layout '%s' settings for specId %d!", spellId, layoutName, specId))
 
     return self.db.global[layoutName][specId].specBars[spellId]
 end
@@ -184,7 +184,8 @@ function Data:GetBarSetting(layoutName, spellId, key)
     local specId = Util:GetActiveSpecId()
     assert(self.db.global[layoutName][specId].specBars[spellId])
 
-    return self.db.global[layoutName][specId].specBars[spellId][key]
+    local value = self.db.global[layoutName][specId].specBars[spellId][key]
+    return value
 end
 
 function Data:SetBarSetting(layoutName, spellId, key, value)

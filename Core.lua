@@ -16,6 +16,7 @@ end
 
 function Core:OnEnable()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     self:RegisterEvent("TRAIT_CONFIG_UPDATED")
     self:RegisterEvent("SPELL_UPDATE_CHARGES")
 
@@ -51,11 +52,16 @@ function Core:PLAYER_ENTERING_WORLD(event, isLogin, isReload)
     end)
 end
 
+function Core:PLAYER_SPECIALIZATION_CHANGED(event)
+    Core:SetupBars(LEM:GetActiveLayoutName())
+end
+
 function Core:TRAIT_CONFIG_UPDATED(event, configId)
     if InCombatLockdown() then return end
 
     for i, chargeBar in pairs(Core.chargeBars) do
-        chargeBar:Init()
+        local settings = Data:GetActiveLayoutBarSettings(chargeBar.spellId)
+        chargeBar:ApplySettings(settings)
         chargeBar:HandleSpellUpdateCharges()
     end
 end
@@ -76,7 +82,6 @@ function Core:SetupBars(layoutName)
     -- pull default spells and add to SV if missing for this spec.
     for _, spellId in pairs(Data.defaultTrackedSpellsBySpec[specId]) do
         if not specBarSettings[spellId] then
-            print('setting up spec bar for', spellId)
             local settings = Util:TableCopy(Data.defaultBarSettings)
             settings.spellId = spellId
             specBarSettings[spellId] = settings
@@ -85,8 +90,12 @@ function Core:SetupBars(layoutName)
 
     -- setup bars from SV
     for spellId, barSettings in pairs(specBarSettings) do
-        local chargeBar = ChargeBar:New()
-        Core.chargeBars[spellId] = chargeBar:Init(barSettings)
+        if not Core.chargeBars[spellId] then
+            Core.chargeBars[spellId] = ChargeBar:NewWithSettings(barSettings)
+        else
+            Core.chargeBars[spellId]:ApplySettings(barSettings)
+            LEM:RefreshFrameSettings(Core.chargeBars[spellId].frame)
+        end
     end
 end
 
@@ -100,6 +109,6 @@ end
 function Core:onExitEditMode()
     for spellId, chargeBar in pairs(Core.chargeBars) do
         local settings = Data:GetActiveLayoutBarSettings(chargeBar.spellId)
-        chargeBar:Init(settings)
+        chargeBar:ApplySettings(settings)
     end
 end
