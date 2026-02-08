@@ -15,8 +15,6 @@ function Core:OnInitialize()
 end
 
 function Core:OnEnable()
-    self:RegisterEvent("PLAYER_ENTERING_WORLD")
-    self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     self:RegisterEvent("TRAIT_CONFIG_UPDATED")
     self:RegisterEvent("SPELL_UPDATE_CHARGES")
 
@@ -41,30 +39,13 @@ function Core:SPELL_UPDATE_CHARGES(event)
     end
 end
 
-function Core:PLAYER_ENTERING_WORLD(event, isLogin, isReload)
-    if InCombatLockdown() then return end
-
-    -- Possible that we can run this too early on initial login, so we delay a second in those cases.
-    C_Timer.After(isLogin and 1 or 0, function()
-        for spellId, chargeBar in pairs(Core.chargeBars) do
-            chargeBar:SetupCharges()
-        end
-    end)
-end
-
-function Core:PLAYER_SPECIALIZATION_CHANGED(event)
-    Core:SetupBars(LEM:GetActiveLayoutName())
-end
-
 function Core:TRAIT_CONFIG_UPDATED(event, configId)
     if InCombatLockdown() then return end
 
-    -- TODO: This can happen before the layout finishes changing if swapping specs. Need to delay this in those cases.
-    for i, chargeBar in pairs(Core.chargeBars) do
-        local settings = Data:GetActiveLayoutBarSettings(chargeBar.spellId)
-        chargeBar:ApplySettings(settings)
-        chargeBar:HandleSpellUpdateCharges()
-    end
+    -- Need to wait a frame for min/max charges to update from talent changes.
+    C_Timer.After(0, function()
+        Core:SetupBars(LEM:GetActiveLayoutName())
+    end)
 end
 
 function Core:SetupBars(layoutName)

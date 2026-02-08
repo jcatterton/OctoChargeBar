@@ -156,6 +156,8 @@ function ChargeBar:SetupCharges()
             table.insert(self.ticksContainer.ticks, tick)
         end
     end
+
+    self:HandleSpellUpdateCharges()
 end
 
 function ChargeBar:Hide()
