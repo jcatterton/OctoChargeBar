@@ -25,7 +25,10 @@ function Core:OnEnable()
         self:onExitEditMode()
     end)
     LEM:RegisterCallback('layout', function(layoutName)
-        self:SetupBars(layoutName)
+        -- Need to wait a frame for min/max charges to update from talent changes.
+        C_Timer.After(0, function()
+            self:SetupBars(layoutName)
+        end)
     end)
 end
 
