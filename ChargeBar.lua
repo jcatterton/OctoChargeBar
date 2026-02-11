@@ -130,23 +130,14 @@ function ChargeBar:SetupCharges()
 
     self.refreshCharge:SetSize(chargeWidth, self.innerContainer:GetHeight())
     if self.showTicks then
-        -- reuse existing ticks when possible
+        -- disable all existing ticks
         for i, tick in ipairs(self.ticksContainer.ticks) do
-            -- can be reused
-            if i <= maxCharges - 1 then
-                tick:SetColorTexture(Util:UnpackRGBA(self.tickColor))
-                tick:SetSize(self.tickWidth, self.ticksContainer:GetHeight())
-                tick:SetPoint("CENTER", self.ticksContainer, "LEFT", chargeWidth * i, 0)
-                tick:SetShown(true)
-            -- hide all ticks we don't need
-            else
                 tick:SetToDefaults()
                 tick:SetShown(false)
-            end
         end
+        self.ticksContainer.ticks = {}
 
-        local newTicksNeeded = (maxCharges - 1) - #self.ticksContainer.ticks
-        for i = #self.ticksContainer.ticks + 1, newTicksNeeded do
+        for i = 1, maxCharges - 1 do
             local tick = self.ticksContainer:CreateTexture(nil, "OVERLAY")
             tick:SetColorTexture(Util:UnpackRGBA(self.tickColor))
             tick:SetSize(self.tickWidth, self.ticksContainer:GetHeight())
