@@ -179,7 +179,6 @@ function ChargeBar:Show()
 end
 
 function ChargeBar:LEMSetup()
-
     LEM:AddFrame(self.frame, function(frame, layoutName, point, x, y)
         self:onPositionChanged(layoutName, point, x, y)
     end, Settings:GetDefaultEditModeFramePosition())
@@ -188,10 +187,10 @@ function ChargeBar:LEMSetup()
     for _, key in ipairs(Settings.GetSettingsDisplayOrder()) do
         local settingObj = Settings.GetLEMSettingsObject(key)
         settingObj.get = function(layoutName)
-            return Settings:Get(layoutName, self.spellId, key)
+            return Settings.Get(layoutName, self.spellId, key)
         end
         settingObj.set = function(layoutName, value)
-            Settings:Set(layoutName, self.spellId, key, value)
+            Settings.Set(layoutName, self.spellId, key, value)
         end
         settingObj.disabled = function(layoutName)
             -- The Enable setting is only disabled (and should already be unchecked) for spells we don't know.

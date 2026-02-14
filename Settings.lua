@@ -162,10 +162,10 @@ end
 function Settings.GetLEMSettingsObject(key)
     assert(Settings.defaultValues[key], string.format("GetLEMSettingsObject: No setting found for '%s'.", key))
 
-    return Settings.defaultValues[key]
+    return CopyTable(Settings.defaultValues[key])
 end
 
-function Settings:Get(layoutName, spellId, key)
+function Settings.Get(layoutName, spellId, key)
     local specId = Util:GetActiveSpecId()
     assert(Data.db.global[layoutName][specId].specBars[spellId], string.format("No %d settings found for spec %d in layout '%s'.", spellId, specId, layoutName))
 
@@ -176,7 +176,7 @@ function Settings:Get(layoutName, spellId, key)
     return value
 end
 
-function Settings:Set(layoutName, spellId, key, value)
+function Settings.Set(layoutName, spellId, key, value)
     local specId = Util:GetActiveSpecId()
     assert(Data.db.global[layoutName][specId].specBars[spellId])
 
@@ -184,7 +184,7 @@ function Settings:Set(layoutName, spellId, key, value)
         value = {value:GetRGBA()}
     end
 
-    local currentValue = Settings:Get(layoutName, spellId, key)
+    local currentValue = Settings.Get(layoutName, spellId, key)
     if currentValue == value then
         return
     end
@@ -194,7 +194,7 @@ function Settings:Set(layoutName, spellId, key, value)
     EventRegistry:TriggerEvent(addonName..".SettingChanged", layoutName, spellId, key, value)
 end
 
-function Settings:CreateBarSettingsObjectFromDefaults(spellId)
+function Settings.CreateBarSettingsObjectFromDefaults(spellId)
     local settings = {
         [Settings.keys.SpellId] = spellId,
     }
