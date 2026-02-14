@@ -140,14 +140,14 @@ function ChargeBar:SetupCharges()
     LPP.PWidth(self.refreshCharge, chargeWidth)
     LPP.PHeight(self.refreshCharge, self.innerContainer:GetHeight())
 
-    if self.showTicks then
-        -- disable all existing ticks
-        for i, tick in ipairs(self.ticksContainer.ticks) do
-                tick:SetToDefaults()
-                tick:SetShown(false)
-        end
-        self.ticksContainer.ticks = {}
+    -- disable all existing ticks
+    for i, tick in ipairs(self.ticksContainer.ticks) do
+        tick:SetToDefaults()
+        tick:SetShown(false)
+    end
+    self.ticksContainer.ticks = {}
 
+    if self.showTicks then
         for i = 1, maxCharges - 1 do
             local tick = self.ticksContainer:CreateTexture(nil, "OVERLAY")
             tick:SetColorTexture(unpack(self.tickColor))
