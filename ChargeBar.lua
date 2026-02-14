@@ -39,21 +39,13 @@ function ChargeBar:ApplySettings(settings)
         self.frame = CreateFrame("Frame", frameName, UIParent, "BackdropTemplate")
         initialSetup = true
         EventRegistry:RegisterCallback(addonName..".SettingChanged", function(ownerID, ...)
-            local layoutName, spellId, key = ...
+            local layoutName, spellId, key, value = ...
             if spellId == self.spellId then
-                self:onSettingChanged(layoutName, key)
+                self:onSettingChanged(layoutName, key, value)
             end
         end)
     end
 
-    self.frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = settings[Settings.keys.BorderWidth],
-        insets = {left = 0, right = 0, top = 0, bottom = 0}
-    })
-    self.frame:SetBackdropColor(0,0,0,0)
-    self.frame:SetBackdropBorderColor(unpack(settings[Settings.keys.BorderColor]))
     PixelUtil.SetWidth(self.frame, settings[Settings.keys.Width])
     PixelUtil.SetHeight(self.frame, settings[Settings.keys.Height])
     PixelUtil.SetPoint(
@@ -64,6 +56,14 @@ function ChargeBar:ApplySettings(settings)
         settings[Settings.keys.Position].x,
         settings[Settings.keys.Position].y
     )
+    self.frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = settings[Settings.keys.BorderWidth],
+        insets = {left = 0, right = 0, top = 0, bottom = 0}
+    })
+    self.frame:SetBackdropColor(0,0,0,0)
+    self.frame:SetBackdropBorderColor(unpack(settings[Settings.keys.BorderColor]))
     self.frame:SetShown(settings[Settings.keys.Enabled])
 
     self.innerContainer = self.innerContainer or CreateFrame("Frame", "innerContainer", self.frame)
@@ -83,7 +83,7 @@ function ChargeBar:ApplySettings(settings)
     self.refreshCharge:SetColorFill(unpack(settings[Settings.keys.RechargeColor]))
 
     self.refreshCharge.text = self.refreshCharge.text or self.refreshCharge:CreateFontString("RechargeTime", "OVERLAY")
-    if settings[Settings.keys.ShowRechargeText] then
+    if settings[Settings.keys.RechargeTextShow] then
         PixelUtil.SetPoint(self.refreshCharge.text, "CENTER", self.refreshCharge, "CENTER", 0, 0)
         self.refreshCharge.text:SetFont(
             settings[Settings.keys.RechargeTextFont],
@@ -225,7 +225,7 @@ function ChargeBar:onPositionChanged(layoutName, point, x, y)
     })
 end
 
-function ChargeBar:onSettingChanged(layoutName, key)
+function ChargeBar:onSettingChanged(layoutName, key, value)
     local settings = Data:GetLayoutBarSettings(layoutName, self.spellId)
     self:ApplySettings(settings)
 end

@@ -22,6 +22,9 @@ externals:
   lib/LibStub:
     url: https://repos.curseforge.com/wow/libstub/trunk
     tag: latest
+  lib/LibSharedMedia-3.0:
+    url: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk
+    tag: latest
   lib/LibEditMode:
     url: https://github.com/p3lim-wow/LibEditMode
     tag: 15

@@ -6,6 +6,7 @@ addon.Settings = Settings
 local Util = addon.Util
 local Data = addon.Data
 local LEM = addon.LibEditMode
+local LibSharedMedia = LibStub("LibSharedMedia-3.0")
 
 Settings.keys = {
     SpellId = "SPELL_ID",
@@ -100,13 +101,26 @@ Settings.defaultValues = {
         name = 'Cooldown Text Font',
         kind = LEM.SettingType.Dropdown,
         default = "Fonts\\FRIZQT__.TTF",
-        -- TODO: Hook this up to LibSharedMedia
-        values = {
-            {
-                text = "FRIZQT",
-                value = "Fonts\\FRIZQT__.TTF",
-            }
-        },
+        generator = function(owner, rootDescription, data)
+            local fontInfo = addon.Settings.GetFontOptions()
+
+            for index, label in pairs(fontInfo.fonts) do
+                local path = fontInfo.byLabel[label]
+                local function IsEnabled()
+                    return data.get(LEM:GetActiveLayoutName()) == path
+                end
+
+                local function SetProxy()
+                    return data.set(LEM:GetActiveLayoutName(), path)
+                end
+
+                local radio = rootDescription:CreateRadio(label, IsEnabled, SetProxy)
+				radio:AddInitializer(function(button, elementDescription, menu)
+					local globalName = Settings.CreateAndGetFontIfNeeded(path, label)
+					button.fontString:SetFontObject(globalName)
+				end)
+            end
+        end
     },
     [Settings.keys.TickWidth] = {
         name = 'Tick Width',
@@ -138,7 +152,7 @@ function Settings.GetSettingsDisplayOrder()
         Settings.keys.BorderColor,
         Settings.keys.RechargeColor,
         Settings.keys.RechargeTextShow,
-        -- Settings.keys.RechargeTextFont,
+        Settings.keys.RechargeTextFont,
         Settings.keys.RechargeTextSize,
         Settings.keys.TickWidth,
         Settings.keys.TickColor
@@ -170,9 +184,14 @@ function Settings:Set(layoutName, spellId, key, value)
         value = {value:GetRGBA()}
     end
 
+    local currentValue = Settings:Get(layoutName, spellId, key)
+    if currentValue == value then
+        return
+    end
+
     Data.db.global[layoutName][specId].specBars[spellId][key] = value
 
-    EventRegistry:TriggerEvent(addonName..".SettingChanged", layoutName, spellId, key)
+    EventRegistry:TriggerEvent(addonName..".SettingChanged", layoutName, spellId, key, value)
 end
 
 function Settings:CreateBarSettingsObjectFromDefaults(spellId)
@@ -189,4 +208,68 @@ function Settings:CreateBarSettingsObjectFromDefaults(spellId)
     end
 
     return settings
+end
+
+-- from https://github.com/ljosberinn/TargetedSpells/blob/main/EditMode.lua
+function Settings.GetFontOptions()
+    local fonts = CopyTable(LibSharedMedia:List(LibSharedMedia.MediaType.FONT))
+    table.sort(fonts)
+    local byLabel = LibSharedMedia:HashTable(LibSharedMedia.MediaType.FONT)
+
+    return {
+        fonts = fonts,
+        byLabel = byLabel,
+    }
+end
+
+-- from https://github.com/ljosberinn/TargetedSpells/blob/main/EditMode.lua
+---@param path string
+---@param label string
+---@return string globalName
+function Settings.CreateAndGetFontIfNeeded(path, label)
+    local sanitizedName = string.gsub(label, " ", "")
+    local globalName = addonName .. "_" .. sanitizedName
+
+    if _G[globalName] == nil then
+        local locale = GAME_LOCALE or GetLocale()
+        local overrideAlphabet = "roman"
+        if locale == "koKR" then
+            overrideAlphabet = "korean"
+        elseif locale == "zhCN" then
+            overrideAlphabet = "simplifiedchinese"
+        elseif locale == "zhTW" then
+            overrideAlphabet = "traditionalchinese"
+        elseif locale == "ruRU" then
+            overrideAlphabet = "russian"
+        end
+
+        local members = {}
+        local coreFont = GameFontNormal
+        local alphabets = { "roman", "korean", "simplifiedchinese", "traditionalchinese", "russian" }
+        for _, alphabet in ipairs(alphabets) do
+            local forAlphabet = coreFont:GetFontObjectForAlphabet(alphabet)
+            local file, size, _ = forAlphabet:GetFont()
+            if alphabet == overrideAlphabet then
+                table.insert(members, {
+                    alphabet = alphabet,
+                    file = path,
+                    height = size,
+                    flags = "",
+                })
+            else
+                table.insert(members, {
+                    alphabet = alphabet,
+                    file = file,
+                    height = size,
+                    flags = "",
+                })
+            end
+        end
+
+        local font = CreateFontFamily(globalName, members)
+        font:SetTextColor(1, 1, 1)
+        _G[globalName] = font
+    end
+
+    return globalName
 end

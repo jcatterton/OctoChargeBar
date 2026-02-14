@@ -12,6 +12,7 @@ lib\AceEvent-3.0\AceEvent-3.0.xml
 lib\AceDB-3.0\AceDB-3.0.xml
 lib\LibEditMode\namespaced.lua
 lib\LibEditMode\embed.xml
+lib\LibSharedMedia-3.0\lib.xml
 
 # Main Files
 Types.lua
