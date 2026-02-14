@@ -13,6 +13,7 @@ lib\AceDB-3.0\AceDB-3.0.xml
 lib\LibEditMode\namespaced.lua
 lib\LibEditMode\embed.xml
 lib\LibSharedMedia-3.0\lib.xml
+lib\LibPixelPerfect-1.0\lib.xml
 
 # Main Files
 Types.lua

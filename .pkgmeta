@@ -25,6 +25,9 @@ externals:
   lib/LibSharedMedia-3.0:
     url: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk
     tag: latest
+  lib/LibPixelPerfect-1.0:
+    url: https://github.com/McTalian/LibPixelPerfect-1.0/LibPixelPerfect-1.0
+    tag: latest
   lib/LibEditMode:
     url: https://github.com/p3lim-wow/LibEditMode
     tag: 15

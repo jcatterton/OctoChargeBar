@@ -4,6 +4,7 @@ local addon = select(2, ...)
 local LEM = addon.LibEditMode
 local Data = addon.Data
 local Settings = addon.Settings
+local LPP = LibStub("LibPixelPerfect-1.0")
 
 local ChargeBar = {}
 addon.ChargeBar = ChargeBar
@@ -46,16 +47,8 @@ function ChargeBar:ApplySettings(settings)
         end)
     end
 
-    PixelUtil.SetWidth(self.frame, settings[Settings.keys.Width])
-    PixelUtil.SetHeight(self.frame, settings[Settings.keys.Height])
-    PixelUtil.SetPoint(
-        self.frame,
-        "CENTER",
-        UIParent,
-        settings[Settings.keys.Position].point,
-        settings[Settings.keys.Position].x,
-        settings[Settings.keys.Position].y
-    )
+    LPP.PSize(self.frame, settings[Settings.keys.Width], settings[Settings.keys.Height])
+    self.frame:SetPoint("CENTER", UIParent, settings[Settings.keys.Position].point, settings[Settings.keys.Position].x, settings[Settings.keys.Position].y)
     self.frame:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\Buttons\\WHITE8X8",
@@ -67,24 +60,24 @@ function ChargeBar:ApplySettings(settings)
     self.frame:SetShown(settings[Settings.keys.Enabled])
 
     self.innerContainer = self.innerContainer or CreateFrame("Frame", "innerContainer", self.frame)
-    PixelUtil.SetWidth(self.innerContainer, self.frame:GetWidth() - (settings[Settings.keys.BorderWidth] * 2))
-    PixelUtil.SetHeight(self.innerContainer, self.frame:GetHeight() - (settings[Settings.keys.BorderWidth] * 2))
-    PixelUtil.SetPoint(self.innerContainer, "CENTER", self.frame, "CENTER", 0, 0)
+    LPP.PWidth(self.innerContainer, self.frame:GetWidth() - (settings[Settings.keys.BorderWidth] * 2))
+    LPP.PHeight(self.innerContainer, self.frame:GetHeight() - (settings[Settings.keys.BorderWidth] * 2))
+    self.innerContainer:SetPoint("CENTER", self.frame, "CENTER")
     self.innerContainer:SetClipsChildren(true)
 
     self.chargeFrame = self.chargeFrame or CreateFrame("StatusBar", "ChargesBar", self.innerContainer)
-    PixelUtil.SetWidth(self.chargeFrame, self.innerContainer:GetWidth())
-    PixelUtil.SetHeight(self.chargeFrame, self.innerContainer:GetHeight())
-    PixelUtil.SetPoint(self.chargeFrame, "CENTER", self.innerContainer, "CENTER", 0, 0)
+    LPP.PWidth(self.chargeFrame, self.innerContainer:GetWidth())
+    LPP.PHeight(self.chargeFrame, self.innerContainer:GetHeight())
+    self.chargeFrame:SetAllPoints(self.innerContainer)
     self.chargeFrame:SetColorFill(unpack(settings[Settings.keys.Color]))
 
     self.refreshCharge = self.refreshCharge or CreateFrame("StatusBar", "RefreshCharge", self.innerContainer)
-    PixelUtil.SetPoint(self.refreshCharge, "LEFT",self.chargeFrame:GetStatusBarTexture(), "RIGHT", 0, 0)
+    self.refreshCharge:SetPoint("LEFT",self.chargeFrame:GetStatusBarTexture(), "RIGHT")
     self.refreshCharge:SetColorFill(unpack(settings[Settings.keys.RechargeColor]))
 
     self.refreshCharge.text = self.refreshCharge.text or self.refreshCharge:CreateFontString("RechargeTime", "OVERLAY")
     if settings[Settings.keys.RechargeTextShow] then
-        PixelUtil.SetPoint(self.refreshCharge.text, "CENTER", self.refreshCharge, "CENTER", 0, 0)
+        self.refreshCharge.text:SetAllPoints(self.refreshCharge)
         self.refreshCharge.text:SetFont(
             settings[Settings.keys.RechargeTextFont],
             settings[Settings.keys.RechargeTextSize],
@@ -103,9 +96,9 @@ function ChargeBar:ApplySettings(settings)
     end
 
     self.ticksContainer = self.ticksContainer or CreateFrame("Frame", "TicksContainer", self.innerContainer)
-    PixelUtil.SetPoint(self.ticksContainer, "CENTER", self.innerContainer, "CENTER", 0, 0)
-    PixelUtil.SetWidth(self.ticksContainer, self.innerContainer:GetWidth())
-    PixelUtil.SetHeight(self.ticksContainer, self.innerContainer:GetHeight())
+    LPP.PHeight(self.ticksContainer, self.innerContainer:GetWidth())
+    LPP.PHeight(self.ticksContainer, self.innerContainer:GetHeight())
+    self.ticksContainer:SetAllPoints(self.innerContainer)
     self.ticksContainer:Raise()
     self.ticksContainer.ticks = self.ticksContainer.ticks or {}
 
@@ -144,7 +137,9 @@ function ChargeBar:SetupCharges()
     self.chargeFrame:SetMinMaxValues(0, maxCharges)
     self.chargeFrame:SetValue(currentCharges)
 
-    self.refreshCharge:SetSize(chargeWidth, self.innerContainer:GetHeight())
+    LPP.PWidth(self.refreshCharge, chargeWidth)
+    LPP.PHeight(self.refreshCharge, self.innerContainer:GetHeight())
+
     if self.showTicks then
         -- disable all existing ticks
         for i, tick in ipairs(self.ticksContainer.ticks) do
@@ -156,7 +151,8 @@ function ChargeBar:SetupCharges()
         for i = 1, maxCharges - 1 do
             local tick = self.ticksContainer:CreateTexture(nil, "OVERLAY")
             tick:SetColorTexture(unpack(self.tickColor))
-            tick:SetSize(self.tickWidth, self.ticksContainer:GetHeight())
+            LPP.PWidth(tick, self.tickWidth)
+            LPP.PHeight(tick, self.ticksContainer:GetHeight())
             tick:SetPoint("CENTER", self.ticksContainer, "LEFT", chargeWidth * i, 0)
             tick:SetTexelSnappingBias(0)
             tick:SetSnapToPixelGrid(false)
