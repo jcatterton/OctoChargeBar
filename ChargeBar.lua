@@ -4,12 +4,13 @@ local addon = select(2, ...)
 local LEM = addon.LibEditMode
 local Util = addon.Util
 local Data = addon.Data
+local Settings = addon.Settings
 
 local ChargeBar = {}
 addon.ChargeBar = ChargeBar
 
 function ChargeBar:New()
-    local newInstance = Util:TableCopy(Data.defaultBarSettings)
+    local newInstance = {}
     setmetatable(newInstance, {__index = self})
     return newInstance
 end
@@ -24,39 +25,52 @@ end
 
 ---@param settings ChargeBarSettings
 function ChargeBar:ApplySettings(settings)
-    local spellName = C_Spell.GetSpellName(settings.spellId)
-    assert(spellName, string.format("No spell name found for %d.", settings.spellId))
+    local spellName = C_Spell.GetSpellName(settings[addon.Settings.keys.SpellId])
+    assert(spellName, string.format("No spell name found for %d.", settings[addon.Settings.keys.SpellId]))
 
     local frameName = string.format("%s: %s", addonName, spellName)
-    self.spellId = settings.spellId
-    self.showTicks = settings.showTicks
-    self.tickColor = settings.tickColor
-    self.tickWidth = settings.tickWidth
-    self.enabled = settings.enabled
+    self.spellId = settings[addon.Settings.keys.SpellId]
+    self.tickWidth = settings[addon.Settings.keys.TickWidth]
+    self.showTicks = self.tickWidth > 0
+    self.tickColor = settings[addon.Settings.keys.TickColor]
+    self.enabled = settings[addon.Settings.keys.Enabled]
 
     local initialSetup = false
 
     if not self.frame then
         self.frame = CreateFrame("Frame", frameName, UIParent, "BackdropTemplate")
         initialSetup = true
+        EventRegistry:RegisterCallback(addonName..".SettingChanged", function(ownerID, ...)
+            local layoutName, spellId, key = ...
+            if spellId == self.spellId then
+                self:onSettingChanged(layoutName, key)
+            end
+        end)
     end
-    self.frame:SetSize(settings.barWidth, settings.barHeight)
+
     self.frame:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = settings.borderWidth,
+        edgeSize = settings[addon.Settings.keys.BorderWidth],
         insets = {left = 0, right = 0, top = 0, bottom = 0}
     })
     self.frame:SetBackdropColor(0,0,0,0)
-    self.frame:SetBackdropBorderColor(Util:UnpackRGBA(settings.borderColor))
-    PixelUtil.SetWidth(self.frame, settings.barWidth)
-    PixelUtil.SetHeight(self.frame, settings.barHeight)
-    PixelUtil.SetPoint(self.frame, "CENTER", UIParent, settings.position.point, settings.position.x, settings.position.y)
-    self.frame:SetShown(settings.enabled)
+    self.frame:SetBackdropBorderColor(unpack(settings[addon.Settings.keys.BorderColor]))
+    PixelUtil.SetWidth(self.frame, settings[addon.Settings.keys.Width])
+    PixelUtil.SetHeight(self.frame, settings[addon.Settings.keys.Height])
+    PixelUtil.SetPoint(
+        self.frame,
+        "CENTER",
+        UIParent,
+        settings[addon.Settings.keys.Position].point,
+        settings[addon.Settings.keys.Position].x,
+        settings[addon.Settings.keys.Position].y
+    )
+    self.frame:SetShown(settings[addon.Settings.keys.Enabled])
 
     self.innerContainer = self.innerContainer or CreateFrame("Frame", "innerContainer", self.frame)
-    PixelUtil.SetWidth(self.innerContainer, settings.barWidth - (settings.borderWidth * 2))
-    PixelUtil.SetHeight(self.innerContainer, settings.barHeight - (settings.borderWidth * 2))
+    PixelUtil.SetWidth(self.innerContainer, self.frame:GetWidth() - (settings[addon.Settings.keys.BorderWidth] * 2))
+    PixelUtil.SetHeight(self.innerContainer, self.frame:GetHeight() - (settings[addon.Settings.keys.BorderWidth] * 2))
     PixelUtil.SetPoint(self.innerContainer, "CENTER", self.frame, "CENTER", 0, 0)
     self.innerContainer:SetClipsChildren(true)
 
@@ -64,16 +78,20 @@ function ChargeBar:ApplySettings(settings)
     PixelUtil.SetWidth(self.chargeFrame, self.innerContainer:GetWidth())
     PixelUtil.SetHeight(self.chargeFrame, self.innerContainer:GetHeight())
     PixelUtil.SetPoint(self.chargeFrame, "CENTER", self.innerContainer, "CENTER", 0, 0)
-    self.chargeFrame:SetColorFill(Util:UnpackRGBA(settings.chargeColor))
+    self.chargeFrame:SetColorFill(unpack(settings[addon.Settings.keys.Color]))
 
     self.refreshCharge = self.refreshCharge or CreateFrame("StatusBar", "RefreshCharge", self.innerContainer)
     PixelUtil.SetPoint(self.refreshCharge, "LEFT",self.chargeFrame:GetStatusBarTexture(), "RIGHT", 0, 0)
-    self.refreshCharge:SetColorFill(Util:UnpackRGBA(settings.rechargeColor))
+    self.refreshCharge:SetColorFill(unpack(settings[addon.Settings.keys.RechargeColor]))
 
     self.refreshCharge.text = self.refreshCharge.text or self.refreshCharge:CreateFontString("RechargeTime", "OVERLAY")
-    if settings.showRechargeText then
+    if settings[addon.Settings.keys.ShowRechargeText] then
         PixelUtil.SetPoint(self.refreshCharge.text, "CENTER", self.refreshCharge, "CENTER", 0, 0)
-        self.refreshCharge.text:SetFont(settings.rechargeTextFont, settings.rechargeTextFontSize, "OUTLINE")
+        self.refreshCharge.text:SetFont(
+            settings[addon.Settings.keys.RechargeTextFont],
+            settings[addon.Settings.keys.RechargeTextSize],
+            "OUTLINE"
+        )
         self.refreshCharge:SetScript("OnUpdate", function()
             if self.refreshCharge:GetTimerDuration() then
                 local rechargeDuration = self.refreshCharge:GetTimerDuration():GetRemainingDuration()
@@ -98,7 +116,7 @@ function ChargeBar:ApplySettings(settings)
     end
 
     -- Disable the bar if we don't know the spell it tracks
-    if not C_SpellBook.IsSpellKnown(settings.spellId) then
+    if not C_SpellBook.IsSpellKnown(self.spellId) then
         self:Hide()
         return self
     end
@@ -139,7 +157,7 @@ function ChargeBar:SetupCharges()
 
         for i = 1, maxCharges - 1 do
             local tick = self.ticksContainer:CreateTexture(nil, "OVERLAY")
-            tick:SetColorTexture(Util:UnpackRGBA(self.tickColor))
+            tick:SetColorTexture(unpack(self.tickColor))
             tick:SetSize(self.tickWidth, self.ticksContainer:GetHeight())
             tick:SetPoint("CENTER", self.ticksContainer, "LEFT", chargeWidth * i, 0)
             tick:SetTexelSnappingBias(0)
@@ -161,218 +179,37 @@ function ChargeBar:Show()
 end
 
 function ChargeBar:LEMSetup()
-    -- TODO: Figure out what the default position values should be.
+
     LEM:AddFrame(self.frame, function(frame, layoutName, point, x, y)
         self:onPositionChanged(layoutName, point, x, y)
-    end, {point = 'CENTER', x = 0, y = 0})
+    end, Settings:GetDefaultEditModeFramePosition())
 
-    LEM:AddFrameSettings(self.frame, {
-        {
-            name = 'Enabled',
-            kind = LEM.SettingType.Checkbox,
-            default = Data.defaultBarSettings.enabled,
-            get = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'enabled')
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'enabled', value)
-                self.enabled = value
-            end,
-        },
-        {
-            name = 'Bar Width',
-            kind = LEM.SettingType.Slider,
-            default = Data.defaultBarSettings.barWidth,
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            get = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'barWidth')
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'barWidth', value)
-                self.frame:SetWidth(value)
-            end,
-            minValue = 50,
-            maxValue = 500,
-            valueStep = 1,
-        },
-        {
-            name = 'Bar Height',
-            kind = LEM.SettingType.Slider,
-            default = Data.defaultBarSettings.barHeight,
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            get = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'barHeight')
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'barHeight', value)
-                self.frame:SetHeight(value)
-            end,
-            minValue = 8,
-            maxValue = 100,
-            valueStep = 1,
-        },
-        {
-            name = 'Charge Color',
-            description = 'Color of active charges.',
-            kind = LEM.SettingType.ColorPicker,
-            default = CreateColor(Util:UnpackRGBA(Data.defaultBarSettings.chargeColor)),
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            hasOpacity = true,
-            get = function(layoutName)
-                return CreateColor(Util:UnpackRGBA(Data:GetBarSetting(layoutName, self.spellId, 'chargeColor')))
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'chargeColor', {
-                    r = value.r,
-                    g = value.g,
-                    b = value.b,
-                    a = value.a
-                })
-                self.chargeFrame:SetColorFill(value:GetRGBA())
-            end,
-        },
-        {
-            name = 'Border Width',
-            kind = LEM.SettingType.Slider,
-            default = Data.defaultBarSettings.borderWidth,
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            get = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'borderWidth')
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'borderWidth', value)
-            end,
-            minValue = 0,
-            maxValue = 5,
-        },
-        {
-            name = 'Border Color',
-            kind = LEM.SettingType.ColorPicker,
-            default = CreateColor(Util:UnpackRGBA(Data.defaultBarSettings.borderColor)),
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            hasOpacity = true,
-            get = function(layoutName)
-                return CreateColor(Util:UnpackRGBA(Data:GetBarSetting(layoutName, self.spellId, 'borderColor')))
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'borderColor', {
-                    r = value.r,
-                    g = value.g,
-                    b = value.b,
-                    a = value.a
-                })
-                self.frame:SetBackdropBorderColor(value:GetRGBA())
-            end,
-        },
-        {
-            name = 'Recharge Bar Color',
-            kind = LEM.SettingType.ColorPicker,
-            default = CreateColor(Util:UnpackRGBA(Data.defaultBarSettings.rechargeColor)),
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            hasOpacity = true,
-            get = function(layoutName)
-                return CreateColor(Util:UnpackRGBA(Data:GetBarSetting(layoutName, self.spellId, 'rechargeColor')))
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'rechargeColor', {
-                    r = value.r,
-                    g = value.g,
-                    b = value.b,
-                    a = value.a
-                })
-                self.refreshCharge:SetColorFill(value:GetRGBA())
-            end,
-        },
-        {
-            name = 'Show Recharge Cooldown Text',
-            kind = LEM.SettingType.Checkbox,
-            default = Data.defaultBarSettings.showRechargeText,
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            get = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'showRechargeText')
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'showRechargeText', value)
-                self.refreshCharge.text:SetShown(false)
-            end,
-        },
-        {
-            name = 'Cooldown Text Size',
-            description = 'Recharge Cooldown Text Size',
-            kind = LEM.SettingType.Slider,
-            default = Data.defaultBarSettings.rechargeTextFontSize,
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            hidden = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'rechargeTextFontSize') < 1
-            end,
-            get = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'rechargeTextFontSize')
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'rechargeTextFontSize', value)
-                self.refreshCharge.text:SetFontHeight(value)
-            end,
-            -- TODO: make these related to the bar size somehow
-            minValue = 6,
-            maxValue = 20,
-            valueStep = 1,
-        },
-        {
-            name = 'Tick Width',
-            kind = LEM.SettingType.Slider,
-            default = Data.defaultBarSettings.tickWidth,
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            get = function(layoutName)
-                return Data:GetBarSetting(layoutName, self.spellId, 'tickWidth')
-            end,
-            set = function(layoutName, value)
-                Data:SetBarSetting(layoutName, self.spellId, 'tickWidth', value)
-                self.tickWidth = value
-            end,
-            minValue = 0,
-            maxValue = 5,
-        },
-        {
-            name = 'Tick Color',
-            kind = LEM.SettingType.ColorPicker,
-            default = CreateColor(Util:UnpackRGBA(Data.defaultBarSettings.tickColor)),
-            disabled = function(layoutName)
-                return not self.enabled
-            end,
-            hasOpacity = true,
-            get = function(layoutName)
-                return CreateColor(Util:UnpackRGBA(Data:GetBarSetting(layoutName, self.spellId, 'tickColor')))
-            end,
-            set = function(layoutName, value)
-                local color = {
-                    r = value.r,
-                    g = value.g,
-                    b = value.b,
-                    a = value.a
-                }
-                Data:SetBarSetting(layoutName, self.spellId, 'tickColor', color)
-                self.tickColor = color
-            end,
-        },
-    })
+    local lemSettings = {}
+    for _, key in ipairs(Settings.GetSettingsDisplayOrder()) do
+        local settingObj = Settings.GetLEMSettingsObject(key)
+        settingObj.get = function(layoutName)
+            return Settings:Get(layoutName, self.spellId, key)
+        end
+        settingObj.set = function(layoutName, value)
+            Settings:Set(layoutName, self.spellId, key, value)
+        end
+        settingObj.disabled = function(layoutName)
+            if key == Settings.keys.Enabled then
+                return not C_SpellBook.IsSpellKnown(self.spellId)
+            end
+            return not self.enabled
+        end
+        if settingObj.kind == LEM.SettingType.Slider then
+            local sliderSettings = Settings:GetSliderSettingsForOption(key)
+            settingObj.minValue = sliderSettings.minValue
+            settingObj.maxValue = sliderSettings.maxValue
+            settingObj.valueStep = sliderSettings.steps
+        end
+
+        table.insert(lemSettings, settingObj)
+    end
+
+    LEM:AddFrameSettings(self.frame, lemSettings)
 end
 
 function ChargeBar:HandleSpellUpdateCharges()
@@ -388,9 +225,14 @@ function ChargeBar:HandleSpellUpdateCharges()
 end
 
 function ChargeBar:onPositionChanged(layoutName, point, x, y)
-    Data:SetBarSetting(layoutName, self.spellId, 'position', {
+    Settings:Set(layoutName, self.spellId, Settings.keys.Position, {
         point = point,
         x = x,
         y = y
     })
+end
+
+function ChargeBar:onSettingChanged(layoutName, key)
+    local settings = Data:GetLayoutBarSettings(layoutName, self.spellId)
+    self:ApplySettings(settings)
 end

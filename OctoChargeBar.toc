@@ -17,5 +17,6 @@ lib\LibEditMode\embed.xml
 Types.lua
 Util.lua
 Data.lua
+Settings.lua
 ChargeBar.lua
 Core.lua

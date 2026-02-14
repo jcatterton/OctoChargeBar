@@ -8,29 +8,6 @@ local Util = addon.Util
 local LEM = addon.LibEditMode
 local AceDB = LibStub('AceDB-3.0')
 
----@type ChargeBarSettings
-Data.defaultBarSettings = {
-    enabled = true,
-    spellId = nil,
-    barWidth = 180,
-    barHeight = 12,
-    borderWidth = 1,
-    borderColor = {r = 0, g = 0, b = 0, a = 1},
-    chargeColor = {r = 255/255, g = 147/255, b = 85/255, a = 1},
-    showRechargeText = true,
-    rechargeTextFont = "Fonts\\FRIZQT__.TTF",
-    rechargeTextFontSize = 11,
-    rechargeColor = {r = .6, g = .6, b = .6, a = .6},
-    showTicks = true,
-    tickWidth = 1,
-    tickColor = {r = 0, g = 0, b = 0, a = 1},
-    position = {
-        point = "CENTER",
-        x = 0,
-        y = 0
-    }
-}
-
 Data.defaultTrackedSpellsBySpec = {
     -- Death Knight: Blood
     [250] = {
@@ -209,25 +186,14 @@ function Data:InitDB()
     )
 end
 
-function Data:GetActiveLayoutBarSettings(spellId)
-    local layoutName = LEM:GetActiveLayoutName()
+function Data:GetLayoutBarSettings(layoutName, spellId)
     local specId = Util:GetActiveSpecId()
     assert(self.db.global[layoutName][specId].specBars[spellId], string.format("SpellId %d not found in layout '%s' settings for specId %d!", spellId, layoutName, specId))
 
     return self.db.global[layoutName][specId].specBars[spellId]
 end
 
-function Data:GetBarSetting(layoutName, spellId, key)
-    local specId = Util:GetActiveSpecId()
-    assert(self.db.global[layoutName][specId].specBars[spellId])
-
-    local value = self.db.global[layoutName][specId].specBars[spellId][key]
-    return value
-end
-
-function Data:SetBarSetting(layoutName, spellId, key, value)
-    local specId = Util:GetActiveSpecId()
-    assert(self.db.global[layoutName][specId].specBars[spellId])
-
-    self.db.global[layoutName][specId].specBars[spellId][key] = value
+function Data:GetActiveLayoutBarSettings(spellId)
+    local layoutName = LEM:GetActiveLayoutName()
+    return self:GetLayoutBarSettings(layoutName, spellId)
 end

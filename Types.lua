@@ -20,7 +20,7 @@
 ---@field showRechargeText boolean
 ---@field showTicks boolean
 ---@field tickWidth number
----@field tickColor {r: number, g: number, b: number, a: number}
+---@field tickColor ColorMixin
 ---@field frame Frame
 ---@field innerContainer Frame
 ---@field chargeFrame StatusBar

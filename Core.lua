@@ -4,6 +4,7 @@ local addon = select(2, ...)
 local Data = addon.Data
 local ChargeBar = addon.ChargeBar
 local Util = addon.Util
+local Settings = addon.Settings
 local LEM = addon.LibEditMode
 
 local Core = LibStub('AceAddon-3.0'):NewAddon(addonName, 'AceEvent-3.0')
@@ -67,8 +68,13 @@ function Core:SetupBars(layoutName)
     -- pull default spells and add to SV if missing for this spec.
     for _, spellId in pairs(Data.defaultTrackedSpellsBySpec[specId]) do
         if not specBarSettings[spellId] then
-            local settings = Util:TableCopy(Data.defaultBarSettings)
-            settings.spellId = spellId
+            local settings = {
+                [Settings.keys.SpellId] = spellId,
+                [Settings.keys.Position] = Settings:GetDefaultEditModeFramePosition()
+            }
+            for key, setting in pairs(addon.Settings.defaultValues) do
+                settings[key] = setting.default
+            end
             specBarSettings[spellId] = settings
         end
     end
