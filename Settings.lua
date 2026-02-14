@@ -42,23 +42,33 @@ Settings.defaultValues = {
         name = 'Bar Width',
         kind = LEM.SettingType.Slider,
         default = 180,
+        minValue = 50,
+        maxValue = 500,
+        valueStep = 1,
     },
     [Settings.keys.Height] = {
         name = 'Bar Height',
         kind = LEM.SettingType.Slider,
         default = 12,
+        minValue = 5,
+        maxValue = 100,
+        valueStep = 1,
     },
     [Settings.keys.Color] = {
         name = 'Charge Color',
-        description = 'Color of active charges.',
         kind = LEM.SettingType.ColorPicker,
-        default = {255/255, 147/255, 85/255, 1},
+        -- Default color can be overriden for specific spells in Data.defaultTrackedSpellsBySpec.
+        -- This is the fallback if a color isn't defined there.
+        default = {0, 1, 0, 1},
         hasOpacity = true,
     },
     [Settings.keys.BorderWidth] = {
         name = 'Border Width',
         kind = LEM.SettingType.Slider,
         default = 1,
+        minValue = 0,
+        maxValue = 10,
+        valueStep = 1,
     },
     [Settings.keys.BorderColor] = {
         name = 'Border Color',
@@ -82,6 +92,9 @@ Settings.defaultValues = {
         description = 'Recharge Cooldown Text Size',
         kind = LEM.SettingType.Slider,
         default = 11,
+        minValue = 6,
+        maxValue = 20,
+        valueStep = 1
     },
     [Settings.keys.RechargeTextFont] = {
         name = 'Cooldown Text Font',
@@ -99,6 +112,9 @@ Settings.defaultValues = {
         name = 'Tick Width',
         kind = LEM.SettingType.Slider,
         default = 1,
+        minValue = 0,
+        maxValue = 10,
+        valueStep = 1,
     },
     [Settings.keys.TickColor] = {
         name = 'Tick Color',
@@ -130,37 +146,9 @@ function Settings.GetSettingsDisplayOrder()
 end
 
 function Settings.GetLEMSettingsObject(key)
-    assert(Settings.defaultValues[key], string.format("GetLEMSettingsObject: Invalid settings key passed in! '%s'", key))
+    assert(Settings.defaultValues[key], string.format("GetLEMSettingsObject: No setting found for '%s'.", key))
 
     return Settings.defaultValues[key]
-end
-
-function Settings:GetSliderSettingsForOption(key)
-    if key == Settings.keys.Width or key == Settings.keys.Height then
-        return {
-            minValue = 5,
-            maxValue = 500,
-            valueStep = 1,
-        }
-    elseif key == Settings.keys.BorderWidth or key == Settings.keys.TickWidth then
-        return {
-            minValue = 0,
-            maxValue = 10,
-            valueStep = 1,
-        }
-    elseif key == Settings.keys.RechargeTextSize then
-        return {
-            minValue = 6,
-            maxValue = 20,
-            valueStep = 1
-        }
-    end
-    error(
-        string.format(
-            "Slider Settings for key '%s' are either not implemented or you're calling this with the wrong key.",
-            key
-        )
-    )
 end
 
 function Settings:Get(layoutName, spellId, key)
@@ -185,4 +173,20 @@ function Settings:Set(layoutName, spellId, key, value)
     Data.db.global[layoutName][specId].specBars[spellId][key] = value
 
     EventRegistry:TriggerEvent(addonName..".SettingChanged", layoutName, spellId, key)
+end
+
+function Settings:CreateBarSettingsObjectFromDefaults(spellId)
+    local settings = {
+        [Settings.keys.SpellId] = spellId,
+    }
+    for key, setting in pairs(addon.Settings.defaultValues) do
+        settings[key] = setting.default
+    end
+
+    -- not every spell will have a default color override, but set it here when we have one.
+    if Data.defaultSpellColors[spellId] then
+        settings[Settings.keys.Color] = Data.defaultSpellColors[spellId]
+    end
+
+    return settings
 end

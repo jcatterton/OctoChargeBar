@@ -54,6 +54,7 @@ end
 
 function Core:SetupBars(layoutName)
     -- If we're switching layouts, we need to hide bars from the old layout.
+    -- TODO: Better to just delete everything and start fresh instead of reuisng bars? Would be a lot simpler.
     for spellId, chargeBar in pairs(Core.chargeBars) do
         chargeBar:Hide()
     end
@@ -68,21 +69,15 @@ function Core:SetupBars(layoutName)
     -- pull default spells and add to SV if missing for this spec.
     for _, spellId in pairs(Data.defaultTrackedSpellsBySpec[specId]) do
         if not specBarSettings[spellId] then
-            local settings = {
-                [Settings.keys.SpellId] = spellId,
-                [Settings.keys.Position] = Settings:GetDefaultEditModeFramePosition()
-            }
-            for key, setting in pairs(addon.Settings.defaultValues) do
-                settings[key] = setting.default
-            end
-            specBarSettings[spellId] = settings
+            local settingsObj = Settings:CreateBarSettingsObjectFromDefaults(spellId)
+            specBarSettings[spellId] = settingsObj
         end
     end
 
     -- setup bars from SV
     for spellId, barSettings in pairs(specBarSettings) do
         if not Core.chargeBars[spellId] then
-            Core.chargeBars[spellId] = ChargeBar:NewWithSettings(barSettings)
+            Core.chargeBars[spellId] = ChargeBar:NewWithSettings(spellId, barSettings)
         else
             Core.chargeBars[spellId]:ApplySettings(barSettings)
             LEM:RefreshFrameSettings(Core.chargeBars[spellId].frame)
@@ -92,14 +87,18 @@ end
 
 function Core:onEnterEditMode()
     -- show everything even if disabled
-    for i, chargeBar in pairs(Core.chargeBars) do
-        chargeBar:Show()
+    for spellId, chargeBar in pairs(Core.chargeBars) do
+        if C_SpellBook.IsSpellKnown(spellId) then
+            chargeBar:Show()
+        end
     end
 end
 
 function Core:onExitEditMode()
     for spellId, chargeBar in pairs(Core.chargeBars) do
-        local settings = Data:GetActiveLayoutBarSettings(chargeBar.spellId)
-        chargeBar:ApplySettings(settings)
+        if C_SpellBook.IsSpellKnown(spellId) then
+            local settings = Data:GetActiveLayoutBarSettings(chargeBar.spellId)
+            chargeBar:ApplySettings(settings)
+        end
     end
 end

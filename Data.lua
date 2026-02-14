@@ -179,6 +179,13 @@ Data.defaultTrackedSpellsBySpec = {
     [73] = {},
 }
 
+Data.defaultSpellColors = {
+    -- Lava Burst
+    [51505] = {255/255, 147/255, 85/255, 1},
+    -- Riptide
+    [61295] = {38/255, 220/255, 1, 1}
+}
+
 function Data:InitDB()
     ---@class AceDBObject-3.0
     self.db = AceDB:New(

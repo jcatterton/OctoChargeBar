@@ -2,7 +2,6 @@ local addonName = select(1, ...)
 local addon = select(2, ...)
 
 local LEM = addon.LibEditMode
-local Util = addon.Util
 local Data = addon.Data
 local Settings = addon.Settings
 
@@ -15,25 +14,24 @@ function ChargeBar:New()
     return newInstance
 end
 
----@param settings ChargeBarSettings
-function ChargeBar:NewWithSettings(settings)
+function ChargeBar:NewWithSettings(spellId, settings)
+    settings[Settings.keys.SpellId] = spellId
     local bar = ChargeBar:New()
     bar:ApplySettings(settings)
 
     return bar
 end
 
----@param settings ChargeBarSettings
 function ChargeBar:ApplySettings(settings)
-    local spellName = C_Spell.GetSpellName(settings[addon.Settings.keys.SpellId])
-    assert(spellName, string.format("No spell name found for %d.", settings[addon.Settings.keys.SpellId]))
+    local spellName = C_Spell.GetSpellName(settings[Settings.keys.SpellId])
+    assert(spellName, string.format("No spell name found for %d.", settings[Settings.keys.SpellId]))
 
     local frameName = string.format("%s: %s", addonName, spellName)
-    self.spellId = settings[addon.Settings.keys.SpellId]
-    self.tickWidth = settings[addon.Settings.keys.TickWidth]
+    self.spellId = settings[Settings.keys.SpellId]
+    self.tickWidth = settings[Settings.keys.TickWidth]
     self.showTicks = self.tickWidth > 0
-    self.tickColor = settings[addon.Settings.keys.TickColor]
-    self.enabled = settings[addon.Settings.keys.Enabled]
+    self.tickColor = settings[Settings.keys.TickColor]
+    self.enabled = settings[Settings.keys.Enabled]
 
     local initialSetup = false
 
@@ -51,26 +49,26 @@ function ChargeBar:ApplySettings(settings)
     self.frame:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = settings[addon.Settings.keys.BorderWidth],
+        edgeSize = settings[Settings.keys.BorderWidth],
         insets = {left = 0, right = 0, top = 0, bottom = 0}
     })
     self.frame:SetBackdropColor(0,0,0,0)
-    self.frame:SetBackdropBorderColor(unpack(settings[addon.Settings.keys.BorderColor]))
-    PixelUtil.SetWidth(self.frame, settings[addon.Settings.keys.Width])
-    PixelUtil.SetHeight(self.frame, settings[addon.Settings.keys.Height])
+    self.frame:SetBackdropBorderColor(unpack(settings[Settings.keys.BorderColor]))
+    PixelUtil.SetWidth(self.frame, settings[Settings.keys.Width])
+    PixelUtil.SetHeight(self.frame, settings[Settings.keys.Height])
     PixelUtil.SetPoint(
         self.frame,
         "CENTER",
         UIParent,
-        settings[addon.Settings.keys.Position].point,
-        settings[addon.Settings.keys.Position].x,
-        settings[addon.Settings.keys.Position].y
+        settings[Settings.keys.Position].point,
+        settings[Settings.keys.Position].x,
+        settings[Settings.keys.Position].y
     )
-    self.frame:SetShown(settings[addon.Settings.keys.Enabled])
+    self.frame:SetShown(settings[Settings.keys.Enabled])
 
     self.innerContainer = self.innerContainer or CreateFrame("Frame", "innerContainer", self.frame)
-    PixelUtil.SetWidth(self.innerContainer, self.frame:GetWidth() - (settings[addon.Settings.keys.BorderWidth] * 2))
-    PixelUtil.SetHeight(self.innerContainer, self.frame:GetHeight() - (settings[addon.Settings.keys.BorderWidth] * 2))
+    PixelUtil.SetWidth(self.innerContainer, self.frame:GetWidth() - (settings[Settings.keys.BorderWidth] * 2))
+    PixelUtil.SetHeight(self.innerContainer, self.frame:GetHeight() - (settings[Settings.keys.BorderWidth] * 2))
     PixelUtil.SetPoint(self.innerContainer, "CENTER", self.frame, "CENTER", 0, 0)
     self.innerContainer:SetClipsChildren(true)
 
@@ -78,18 +76,18 @@ function ChargeBar:ApplySettings(settings)
     PixelUtil.SetWidth(self.chargeFrame, self.innerContainer:GetWidth())
     PixelUtil.SetHeight(self.chargeFrame, self.innerContainer:GetHeight())
     PixelUtil.SetPoint(self.chargeFrame, "CENTER", self.innerContainer, "CENTER", 0, 0)
-    self.chargeFrame:SetColorFill(unpack(settings[addon.Settings.keys.Color]))
+    self.chargeFrame:SetColorFill(unpack(settings[Settings.keys.Color]))
 
     self.refreshCharge = self.refreshCharge or CreateFrame("StatusBar", "RefreshCharge", self.innerContainer)
     PixelUtil.SetPoint(self.refreshCharge, "LEFT",self.chargeFrame:GetStatusBarTexture(), "RIGHT", 0, 0)
-    self.refreshCharge:SetColorFill(unpack(settings[addon.Settings.keys.RechargeColor]))
+    self.refreshCharge:SetColorFill(unpack(settings[Settings.keys.RechargeColor]))
 
     self.refreshCharge.text = self.refreshCharge.text or self.refreshCharge:CreateFontString("RechargeTime", "OVERLAY")
-    if settings[addon.Settings.keys.ShowRechargeText] then
+    if settings[Settings.keys.ShowRechargeText] then
         PixelUtil.SetPoint(self.refreshCharge.text, "CENTER", self.refreshCharge, "CENTER", 0, 0)
         self.refreshCharge.text:SetFont(
-            settings[addon.Settings.keys.RechargeTextFont],
-            settings[addon.Settings.keys.RechargeTextSize],
+            settings[Settings.keys.RechargeTextFont],
+            settings[Settings.keys.RechargeTextSize],
             "OUTLINE"
         )
         self.refreshCharge:SetScript("OnUpdate", function()
@@ -194,16 +192,11 @@ function ChargeBar:LEMSetup()
             Settings:Set(layoutName, self.spellId, key, value)
         end
         settingObj.disabled = function(layoutName)
+            -- The Enable setting is only disabled (and should already be unchecked) for spells we don't know.
             if key == Settings.keys.Enabled then
                 return not C_SpellBook.IsSpellKnown(self.spellId)
             end
             return not self.enabled
-        end
-        if settingObj.kind == LEM.SettingType.Slider then
-            local sliderSettings = Settings:GetSliderSettingsForOption(key)
-            settingObj.minValue = sliderSettings.minValue
-            settingObj.maxValue = sliderSettings.maxValue
-            settingObj.valueStep = sliderSettings.steps
         end
 
         table.insert(lemSettings, settingObj)
