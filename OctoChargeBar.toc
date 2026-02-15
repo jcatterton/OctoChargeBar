@@ -3,7 +3,7 @@
 ## SavedVariables: OctoChargeBarDB
 ## Notes: Represent cooldowns of charge-based spells with a bar
 ## Version: @project-version@
-## Author: Thejigglr-BleedingHollow-NA
+## IconTexture: Interface\AddOns\OctoChargeBar\Media\Icon.blp
 
 # Libraries
 lib\LibStub\LibStub.lua
