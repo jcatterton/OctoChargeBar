@@ -136,15 +136,11 @@ function ChargeBar:SetupCharges()
 
     local chargeInfo = C_Spell.GetSpellCharges(self.spellId)
     if not chargeInfo then return end
-
-    local maxCharges = chargeInfo.maxCharges
     local currentCharges = chargeInfo.currentCharges
-    local chargeWidth = self.innerContainer:GetWidth() / maxCharges
+    local maxCharges = chargeInfo.maxCharges
+
     self.chargeFrame:SetMinMaxValues(0, maxCharges)
     self.chargeFrame:SetValue(currentCharges)
-
-    LPP.PWidth(self.refreshCharge, chargeWidth)
-    LPP.PHeight(self.refreshCharge, self.innerContainer:GetHeight())
 
     -- disable all existing ticks
     for i, tick in ipairs(self.ticksContainer.ticks) do
@@ -153,16 +149,23 @@ function ChargeBar:SetupCharges()
     end
     self.ticksContainer.ticks = {}
 
-    if self.showTicks then
-        for i = 1, maxCharges - 1 do
-            local tick = self.ticksContainer:CreateTexture(nil, "OVERLAY")
-            tick:SetColorTexture(unpack(self.tickColor))
-            LPP.PWidth(tick, self.tickWidth)
-            LPP.PHeight(tick, self.ticksContainer:GetHeight())
-            tick:SetPoint("CENTER", self.ticksContainer, "LEFT", chargeWidth * i, 0)
-            tick:SetTexelSnappingBias(0)
-            tick:SetSnapToPixelGrid(false)
-            table.insert(self.ticksContainer.ticks, tick)
+    if not issecretvalue(maxCharges) then
+        local chargeWidth = self.innerContainer:GetWidth() / maxCharges
+
+        LPP.PWidth(self.refreshCharge, chargeWidth)
+        LPP.PHeight(self.refreshCharge, self.innerContainer:GetHeight())
+
+        if self.showTicks then
+            for i = 1, maxCharges - 1 do
+                local tick = self.ticksContainer:CreateTexture(nil, "OVERLAY")
+                tick:SetColorTexture(unpack(self.tickColor))
+                LPP.PWidth(tick, self.tickWidth)
+                LPP.PHeight(tick, self.ticksContainer:GetHeight())
+                tick:SetPoint("CENTER", self.ticksContainer, "LEFT", chargeWidth * i, 0)
+                tick:SetTexelSnappingBias(0)
+                tick:SetSnapToPixelGrid(false)
+                table.insert(self.ticksContainer.ticks, tick)
+            end
         end
     end
 
