@@ -46,6 +46,7 @@ An addon to display charges of an important spell as a bar. Everything works in 
   * Renewing Mists
   * Roll
 * Windwalker Monk
+  * Zenith
   * Roll
 * Elemental Shaman
   * Lava Burst

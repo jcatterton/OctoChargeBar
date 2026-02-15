@@ -114,6 +114,7 @@ Data.defaultTrackedSpellsBySpec = {
 
     -- Monk: Windwalker
     [269] = {
+        1249625, -- Zenith
         109132, -- Roll
     },
 
