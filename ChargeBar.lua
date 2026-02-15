@@ -82,13 +82,13 @@ function ChargeBar:ApplySettings(settings)
     self.refreshCharge:SetColorFill(unpack(settings[Settings.keys.RechargeColor]))
 
     self.refreshCharge.text = self.refreshCharge.text or self.refreshCharge:CreateFontString("RechargeTime", "OVERLAY")
+    self.refreshCharge.text:SetAllPoints(self.refreshCharge)
+    self.refreshCharge.text:SetFont(
+        settings[Settings.keys.RechargeTextFont],
+        settings[Settings.keys.RechargeTextSize],
+        "OUTLINE"
+    )
     if settings[Settings.keys.RechargeTextShow] then
-        self.refreshCharge.text:SetAllPoints(self.refreshCharge)
-        self.refreshCharge.text:SetFont(
-            settings[Settings.keys.RechargeTextFont],
-            settings[Settings.keys.RechargeTextSize],
-            "OUTLINE"
-        )
         self.refreshCharge:SetScript("OnUpdate", function()
             if self.refreshCharge:GetTimerDuration() then
                 local rechargeDuration = self.refreshCharge:GetTimerDuration():GetRemainingDuration()
@@ -98,7 +98,8 @@ function ChargeBar:ApplySettings(settings)
             end
         end)
     else
-        self.refreshCharge.text:SetToDefaults()
+        self.refreshCharge.text:SetText("")
+        self.refreshCharge:SetScript("OnUpdate", nil)
     end
 
     self.ticksContainer = self.ticksContainer or CreateFrame("Frame", "TicksContainer", self.innerContainer)
